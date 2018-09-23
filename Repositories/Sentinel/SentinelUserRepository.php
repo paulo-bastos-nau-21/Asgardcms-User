@@ -76,7 +76,7 @@ class SentinelUserRepository implements UserRepository
      */
     public function createWithRoles($data, $roles, $activated = false)
     {
-        $user = $this->create((array) $data, $activated);
+        $user = $this->create((array)$data, $activated);
 
         if (!empty($roles)) {
             $user->roles()->attach($roles);
@@ -96,7 +96,7 @@ class SentinelUserRepository implements UserRepository
     public function createWithRolesFromCli($data, $roles, $activated = false)
     {
         $this->hashPassword($data);
-        $user = $this->user->create((array) $data);
+        $user = $this->user->create((array)$data);
 
         if (!empty($roles)) {
             $user->roles()->attach($roles);
@@ -219,7 +219,7 @@ class SentinelUserRepository implements UserRepository
         return $roles->paginate($request->get('per_page', 10));
     }
 
-    public function allWithBuilder() : Builder
+    public function allWithBuilder(): Builder
     {
         return $this->user->newQuery();
     }
@@ -260,11 +260,14 @@ class SentinelUserRepository implements UserRepository
      */
     private function checkForManualActivation($user, array &$data)
     {
-        if (Activation::completed($user) && !$data['activated']) {
+        // Maintain compatibility with what existed before.
+        $activated = isset($data['is_activated']) ? $data['is_activated'] : $data['activated'];
+
+        if (Activation::completed($user) && !$activated) {
             return Activation::remove($user);
         }
 
-        if (!Activation::completed($user) && $data['activated']) {
+        if (!Activation::completed($user) && $activated) {
             $activation = Activation::create($user);
 
             return Activation::complete($user, $activation->code);
